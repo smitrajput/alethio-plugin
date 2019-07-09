@@ -1,4 +1,5 @@
 import React from "react";
+import Contract from "./contract";
 
 const plugin = {
     init(config:any, api:any, logger:any, publicPath:any) {
@@ -21,6 +22,7 @@ const plugin = {
             </label>
             <input type="submit" value="Submit" />
             </form>
+            <Contract />
             </div>
             )
 

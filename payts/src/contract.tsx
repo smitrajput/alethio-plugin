@@ -5,7 +5,7 @@ import { Form,Button,Input,Message,Header,Icon } from 'semantic-ui-react'
 // import web3 from '../../ethereum/web3';
 // import { Router } from '../../routes';
 
-class CampaignNew extends Component{
+class Contract extends Component{
 	constructor(props:any){
 		super(props);
 		this.state ={
@@ -46,8 +46,8 @@ class CampaignNew extends Component{
 
 			<div>
 
-				this is my div
-				<input value={this.state.contract_address} onChange={console.log("contract address changed")}>  enter contract address </input>
+				<p>this is my div</p>
+				<input  onChange={(event)=> console.log("contract address changed to : " + event.target.value)}>  enter contract address </input>
 			</div>
 			// <Layout>
 			 {/* <div>
@@ -109,4 +109,4 @@ class CampaignNew extends Component{
 	}
 }
 
-export default CampaignNew;
+export default Contract;
