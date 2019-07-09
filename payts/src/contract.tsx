@@ -5,21 +5,29 @@ import { Form,Button,Input,Message,Header,Icon } from 'semantic-ui-react'
 // import web3 from '../../ethereum/web3';
 // import { Router } from '../../routes';
 
-class Contract extends Component{
+type MyProps = { };
+type MyState = { title: string,
+				 contract_details:string };
+
+class Contract extends Component<MyProps, MyState>{
 	constructor(props:any){
 		super(props);
 		this.state ={
-			minimumContribution:'',
-			chooseCategory:'',
 			title:'',
-			description:'',
-			errorMessage:'',
-			loading:false,
-			contract_address:''
+			contract_details:''
 		};
 	}
 
 
+	getContractDetails(){
+		console.log("this is contract. hurray");
+		fetch('https://jsonplaceholder.typicode.com/todos/1')
+		.then(response => response.json())
+		.then(json => {
+			console.log(json);
+			this.setState({contract_details:JSON.stringify(json)})
+		})
+	}
 	// onSubmit = async (event) => {
 	// 	event.preventDefault();
 
@@ -47,63 +55,12 @@ class Contract extends Component{
 			<div>
 
 				<p>this is my div</p>
-				<input  onChange={(event)=> console.log("contract address changed to : " + event.target.value)}>  enter contract address </input>
-			</div>
-			// <Layout>
-			 {/* <div>
-					<div style={{margin:50}}>
-						<Header as='h2' icon textAlign='center' color='teal'>
-      				<Header.Content>
-        				Create a Need
-      				</Header.Content>
-  				 	 </Header>
-  				 	 </div>
-  				</div>
-
-			  <Form onSubmit={this.onSubmit} error={!!this.state.errorMessage}>
-					<Form.Field>
-						<div>
-							<label>Choose a Category</label>
-							<Input
-								list='categories'
-								value={this.state.chooseCategory}
-				  			onChange={event => this.setState({ chooseCategory:event.target.value })}
-								/>
-							<datalist id='categories'>
-								<option value='Event Sponsorship' />
-								<option value='Welfare'/>
-							</datalist>
-						</div>
-					</Form.Field>
-
-					<Form.Field>
-						<label>Title</label>
-						<Input
-							value={this.state.title}
-							onChange={event => this.setState({ title: event.target.value })}
-						/>
-					</Form.Field>
-
-					<Form.Field>
-						<label>Description</label>
-						<Input
-							value={this.state.description}
-							onChange={event => this.setState({ description: event.target.value })}
-						/>
-					</Form.Field>
-
-			  	<Form.Field>
-			  		<label>Minimum Contribution</label>
-			  		<Input
-			  			label="wei"
-			  			labelPosition="right"
-			  			value={this.state.minimumContribution}
-			  			onChange={event => this.setState({ minimumContribution: event.target.value })}
-			  		/>
-			  	</Form.Field>
-			  	<Message error header="Oops!" content={this.state.errorMessage} />
-			  	<Button loading={this.state.loading} basic color='teal'>Create</Button>
-			  </Form> */}
+				<p>{this.state.title}</p>
+				<input value={this.state.title} onChange={(e)=>this.setState({title:e.target.value})} ></input>
+				<br></br>
+				<button onClick={this.getContractDetails}> get Contract Details </button>
+				<p>{this.state.contract_details}</p>
+				</div>
 			//  </Layout>
 		);
 	}

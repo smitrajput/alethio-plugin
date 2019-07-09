@@ -1,4 +1,5 @@
 import React from "react";
+require('isomorphic-fetch');
 import Contract from "./contract";
 
 const plugin = {
@@ -18,15 +19,14 @@ const plugin = {
             <form>
             <label>
                 Contract Address:
-                <input type="text" name="name" />
+                <input type="text" name="name" onChange={(event)=>{this.http('https://api.aleth.io/v1/contracts/0x2af47a65da8CD66729b4209C22017d6A5C2d2400/token')}}/>
             </label>
-            <input type="submit" value="Submit" />
+            <input type="submit" value="Submit"/>
             </form>
             <Contract />
             </div>
             )
-
-        }
+            }
 
             // getContentComponent: async () => (props) => console.log('hi')
             ,
@@ -55,6 +55,23 @@ const plugin = {
     getAvailableLocales() {
         return ["en-US"];
     },
+
+    async http(request: RequestInfo): Promise<any> {
+        return new Promise(async resolve => {
+          let data = await fetch(request, {
+              method: 'GET',
+              headers: {
+                  'username':'main_k5ua5idae7skpuciub5afanpxys3q',
+              }
+          })
+          console.log(await data.json());
+            // .then(response => console.log(response.json()))
+            // .then(body => {
+            //   resolve(body);
+            // });
+
+        });
+      },
 
     async loadTranslations(locale:any) {
         return await import("./translation/" + locale + ".json");
