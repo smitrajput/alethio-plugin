@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Form,Button,Input,Message,Header,Icon } from 'semantic-ui-react'
+import { Container, Form,Button,Input,Message,Header,Icon, Segment, Table } from 'semantic-ui-react'
 // import { addABI, decodeMethod } from 'abi-decoder';
 import abiDecoder from 'abi-decoder';
 import { array } from "prop-types";
@@ -22,7 +22,8 @@ type MyState = {
 				token_contract_address:any,
 				transaction_hash:any,
 				transactions:any,
-				raw_data:any
+				raw_data:any,
+				tokenDetail: any
 				// transactions:any
 				};
 
@@ -38,7 +39,7 @@ class Contract extends Component<MyProps, MyState>{
 			transaction_details:'',
 			contract_address:'',
 			account_address:'',
-			token_balances:'',
+			token_balances:[],
 			contract_abi:'',
 			token_contract_address:'',
 			transaction_hash:'',
@@ -46,6 +47,7 @@ class Contract extends Component<MyProps, MyState>{
 			raw_data:''
 		};
 		this.getContractDetails.bind(this);
+		// this._renderAccountTokenBalances.bind(this);
 	}
 
 
@@ -67,7 +69,7 @@ class Contract extends Component<MyProps, MyState>{
 
 	getTokenDetails = async () => {
 		console.log("this is contract. hurray");
-		var request = 'https://api.aleth.io/v1/tokens/0xcd63bb3586e871611cc60befcadf8e56bc7aeea3'
+		var request = `https://api.aleth.io/v1/tokens/${this.state.token_contract_address}`
 		await fetch(request, {
 			method: 'GET',
 			headers: {
@@ -77,13 +79,13 @@ class Contract extends Component<MyProps, MyState>{
 		.then(response => response.json())
 		.then(json => {
 			console.log(json);
-			this.setState({token_details:JSON.stringify(json)})
+			this.setState({token_details:json})
 		})
 	}
 
 	getTokenBalance = async () => {
-		console.log("this is contract. hurray");
-		let url = `https://web3api.io/api/v1/addresses/0xD43541554551Fb3fBB472a4c295a5d6C6B8fa5dd/tokens`;
+		// console.log("this is contract. hurray");
+		let url = `https://web3api.io/api/v1/addresses/${this.state.account_address}/tokens`;
 		let api_key = "UAK85fcd3c978f3c11801d9dbb5c989a815";
 		let data;
 		try{
@@ -100,14 +102,14 @@ class Contract extends Component<MyProps, MyState>{
 		}
 	let jsonData = await data.json();
 		console.log(jsonData);
-		this.setState({token_balances:JSON.stringify(jsonData)})
+		this.setState({token_balances:jsonData["payload"]["records"]})
 	}
 
 	getTransactions = async () => {
 		let jsonData;
 		let data;
 		try{
-			var request = 'https://api.aleth.io/v1/contracts/0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359/transactions'
+			var request = `https://api.aleth.io/v1/contracts/${this.state.contract_address}/transactions`
 			await fetch(request, {
 			method: 'GET',
 			headers: {
@@ -143,7 +145,7 @@ class Contract extends Component<MyProps, MyState>{
 
 		let decodedData = abiDecoder.decodeMethod(testData);
 		console.log("decoded data ",decodedData);
-		this.setState({params:JSON.stringify(decodedData)})
+		// this.setState({params:JSON.stringify(decodedData)})
 	}
 
 	getTransactionAndDecode = async () => {
@@ -175,53 +177,173 @@ class Contract extends Component<MyProps, MyState>{
 		// };
 	}
 
+	// _renderAccountTokenBalances = async () => {
+	// 	console.log(this.state.token_balances)
+	// 	if(this.state.token_balances != null){
+	// 		return this.state.token_balances.map((tokenDetails: any, index: any) => {
+	// 			let {address, holder, amount, decimals, name, symbol, isERC20, isERC721, isERC777, isERC884, isERC998} = tokenDetails;
+	// 			return(
+	// 				<tr key={address} className="">
+	// 					<td className="">{name} [{symbol}]</td>
+	// 					<td className="">{amount*Math.pow(10, -1 * decimals)}</td>
+	// 				</tr>
+	// 				// <Table.Row key={address}>
+	// 				// 	<Table.Cell>{name} [{symbol}]</Table.Cell>
+	// 				// 	{/* <Table.Cell>{symbol}</Table.Cell> */}
+	// 				// 	<Table.Cell>{amount*Math.pow(10, -1 * decimals)}</Table.Cell>
+	// 				// </Table.Row>
+	// 			)
+	// 		})
+	// 	}
+	// }
+
 	render(){
+		let contractTokenDetails;
+		if(this.state.token_details != ""){
+			if(this.state.token_details["errors"] == undefined){
+				contractTokenDetails =
+				<Container style={{margin:10}}>
+				<Table definition>
+					<Table.Body>
+						<Table.Row>
+							<Table.Cell>Token Name:</Table.Cell>
+							<Table.Cell>{this.state.token_details["data"]["attributes"]["name"]}</Table.Cell>
+						</Table.Row>
+						<Table.Row>
+							<Table.Cell>Symbol:</Table.Cell>
+							<Table.Cell>{this.state.token_details["data"]["attributes"]["symbol"]}</Table.Cell>
+						</Table.Row>
+						<Table.Row>
+							<Table.Cell>Total Supply:</Table.Cell>
+							<Table.Cell>{this.state.token_details["data"]["attributes"]["totalSupply"]}</Table.Cell>
+						</Table.Row>
+						<Table.Row>
+							<Table.Cell>Decimals:</Table.Cell>
+							<Table.Cell>{this.state.token_details["data"]["attributes"]["decimals"]}</Table.Cell>
+						</Table.Row>
+					</Table.Body>
+				</Table>
+			</Container>
+			}
+			else{
+				contractTokenDetails =
+				<Container style={{margin:10}}>
+					<Header inverted as="h4">Error: </h4> Address is not a token contract address!
+				</Container>
+
+			}
+		}
+		else{
+			contractTokenDetails = <Container style={{margin:10}}></Container>
+		}
+
+
+		let rows = this.state.token_balances.map((tokenDetails: any) => {
+			// let {address, holder, amount, decimals, name, symbol, isERC20, isERC721, isERC777, isERC884, isERC998} = tokenDetails;
+			return <AccountTokenBalanceRow key={tokenDetails.address} data={tokenDetails}></AccountTokenBalanceRow>
+		})
+
+		let accountTokenDetails;
+		if(this.state.token_balances != ""){
+			accountTokenDetails =
+			<Container style={{margin:10}}>
+				<table className="ui definition table">
+					<tbody className="">
+						{rows}
+					</tbody>
+				</table>
+			</Container>
+		}
+		else{
+			accountTokenDetails = <Container style={{margin:10}}></Container>
+		}
+
+
+
+
 		return(
 
 			<div>
-				<p>Enter Token Contract Address : </p>
-				<input value={this.state.token_contract_address} onChange={(e)=>this.setState({token_contract_address:e.target.value})} ></input>
-				<br />
-				<button onClick={this.getTokenDetails}> get Token Details </button>
-				<p>{this.state.token_details}</p>
-				<br />
-				<p>Enter Account Address : </p>
-				<input value={this.state.account_address} onChange={(e)=>this.setState({account_address:e.target.value})} ></input>
-				<br />
-				<button onClick={this.getTokenBalance}> get All Token Balances </button>
-				<p>Token Balances for this Acoount : </p>
-				<p>{this.state.token_balances}</p>
-				<br />
+				<Container fluid>
+					<div style={ {marginLeft: 10, marginRight: 10}}>
+						<Container fluid>
+							<Segment inverted>
+								<Form inverted>
+								<Header inverted as="h2" textAlign="center">Token Contract Details</Header>
+									<Form.Group widths='equal'>
+										<Form.Input fluid label='Enter Token Contract Address' placeholder='Token Contract Address' value={this.state.token_contract_address} onChange={(e)=>this.setState({token_contract_address:e.target.value})}/>
+										{/* <Form.Input fluid label='Last name' placeholder='Last name' /> */}
+									</Form.Group>
+									<Button type='submit' onClick={this.getTokenDetails}>Get Token Details</Button>
+									{contractTokenDetails}
+								</Form>
+							</Segment>
+						</Container>
+					</div>
+
+					<div style={ {marginLeft: 10, marginRight: 10, marginTop: 20}}>
+						<Container fluid>
+							<Segment inverted>
+								<Form inverted>
+								<Header inverted as="h2" textAlign="center">Account Token Balances</Header>
+									<Form.Group widths='equal'>
+										<Form.Input fluid label='Enter Account Address' placeholder='Account Address' value={this.state.account_address} onChange={(e)=>this.setState({account_address:e.target.value})}/>
+										{/* <Form.Input fluid label='Last name' placeholder='Last name' /> */}
+									</Form.Group>
+									<Button type='submit' onClick={this.getTokenBalance}>Get Token Balances</Button>
+									{accountTokenDetails}
+								</Form>
+							</Segment>
+						</Container>
+					</div>
+
+					<div style={ {marginLeft: 10, marginRight: 10, marginTop: 20}}>
+						<Container fluid>
+							<Segment inverted>
+								<Form inverted>
+								<Header inverted as="h2" textAlign="center">Decode Transaction Parameters</Header>
+									<Form.Group widths='equal'>
+										<Form.Input fluid label='Enter Contract Address' placeholder='Contract Address' value={this.state.contract_address} onChange={(e)=>this.setState({contract_address:e.target.value})}/>
+										<Form.Input fluid label='Enter Contract ABI' placeholder='Contract ABI' value={this.state.contract_abi} onChange={(e)=>this.setState({contract_abi: e.target.value})}/>
+									</Form.Group>
+									<Button type='submit' onClick={this.getTransactions}>Get Contract Transactions</Button>
+									<Form.Group widths="equal" style={{marginTop: 20}}>
+										<Form.Input fluid label="Enter Transaction Hash" placeholder="Transaction Hash" value={this.state.transaction_hash} onChange={(e)=>this.setState({transaction_hash:e.target.value})}/>
+									</Form.Group>
+									<Button type="submit" onClick={this.decodeParams}> Get Decoded Parameters for the Transaction</Button>
+								</Form>
+							</Segment>
+						</Container>
+					</div>
+				</Container>
+			</div>
 
 
-				<h3>Decode Transaction Parameters</h3>
-				<p>Enter Contract Address : </p>
-				<input value={this.state.contract_address} onChange={(e)=>this.setState({contract_address:e.target.value})} ></input>
-				<br />
-				<p>Enter Contract ABI : </p>
-				<input value={this.state.contract_abi} onChange={(e)=>this.setState({contract_abi:e.target.value})} ></input>
-				<br />
-				<p> Entered ABI : </p>
-				<p>{this.state.contract_abi}</p>
 
-				<button onClick={this.getTransactions}> get Transactions for this contract </button>
-				<p>{this.state.transactions}</p>
-				<br />
+			// 	<p>Enter Transaction Hash : </p>
+			// 	<input value={this.state.transaction_hash} onChange={(e)=>this.setState({transaction_hash:e.target.value})} ></input>
+			// 	<br />
 
-				<p>Enter Transaction Hash : </p>
-				<input value={this.state.transaction_hash} onChange={(e)=>this.setState({transaction_hash:e.target.value})} ></input>
-				<br />
+			// 	<button onClick={this.decodeParams}> get Decoded Parameters for the transaction </button>
+			// 	<p>{this.state.params}</p>
 
-				<button onClick={this.getTransactionAndDecode}> get Decoded Parameters for the transaction </button>
-				<p>{this.state.params}</p>
-
-				{/* <button onClick={this.getTransactions}> get Transaction Details </button>
-				<p>{this.state.transaction_details}</p>
-				<p> Decoded Parameters : <br /> {this.state.params}</p> */}
-				</div>
+			// 	{/* <button onClick={this.getTransactions}> get Transaction Details </button>
+			// 	<p>{this.state.transaction_details}</p>
+			// 	<p> Decoded Parameters : <br /> {this.state.params}</p> */}
+			// 	</div>
 			//  </Layout>
 		);
 	}
 }
 
+const AccountTokenBalanceRow = (props) => {
+	return(
+
+		<tr className="">
+			<td className="">{props.data.name} [{props.data.symbol}]</td>
+			<td className="">{props.data.amount*Math.pow(10, -1 * props.data.decimals)}</td>
+		</tr>
+
+	)
+}
 export default Contract;

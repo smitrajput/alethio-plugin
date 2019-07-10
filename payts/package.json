@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "@alethio/ui": "^1.0.0-beta.11",
-    "abi-decoder": "^2.0.1"
+    "abi-decoder": "^2.0.1",
+    "semantic-ui-react": "^0.87.3"
   }
 }
