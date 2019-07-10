@@ -37,7 +37,7 @@ const plugin = {
             },
             // Function that resolves to a React component class/ functional component. It can also be async.
             getPageTemplate: () => ({ slots }) => <div>
-            <h1>Contract Account Explorer</h1>
+            <h1 style={{textAlign:"center", color:"#000000"}}><b>Contract Account Explorer</b></h1>
             { /* We'll define a single named slot ("content"), where the CMS will inject our module */ }
             { slots && slots["content"] }
         </div>

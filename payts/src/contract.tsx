@@ -1,14 +1,16 @@
 import React, { Component } from 'react';
-import { Container, Form,Button,Input,Message,Header,Icon, Segment, Table } from 'semantic-ui-react'
+import { Container, Form,Button,Input,Message,Header,Icon, Segment, Table, Label } from 'semantic-ui-react'
 // import { addABI, decodeMethod } from 'abi-decoder';
 // import abiDecoder from 'abi-decoder';
 const abiDecoder = require('abi-decoder');
 import { array } from "prop-types";
+const moment = require("moment");
 // import Layout from '../../components/Layout.js';
 // import factory from '../../ethereum/factory';
 // import web3 from '../../ethereum/web3';
 // import { Router } from '../../routes';
 
+let txn;
 type MyProps = { };
 type MyState = {
 				title: string,
@@ -25,6 +27,7 @@ type MyState = {
 				transactions:any,
 				raw_data:any,
 				tokenDetail: any
+				decodedDataLatest: any
 				// transactions:any
 				};
 
@@ -36,7 +39,7 @@ class Contract extends Component<MyProps, MyState>{
 			title:'',
 			contract_details:'',
 			token_details:'',
-			params:'',
+			params:{"params":[]},
 			transaction_details:'',
 			contract_address:'',
 			account_address:'',
@@ -44,8 +47,9 @@ class Contract extends Component<MyProps, MyState>{
 			contract_abi:'',
 			token_contract_address:'',
 			transaction_hash:'',
-			transactions:'',
-			raw_data:''
+			transactions:[],
+			raw_data:'',
+			decodedDataLatest:{"params":[]}
 		};
 		this.getContractDetails.bind(this);
 		// this._renderAccountTokenBalances.bind(this);
@@ -119,10 +123,10 @@ class Contract extends Component<MyProps, MyState>{
 		})
 		.then(response => response.json())
 		.then(jsonData => {
-			console.log(jsonData);
+			console.log(jsonData["data"]);
 			// this.setState({transactions:(jsonData["data"])})
 			// console.log(this.state.transactions);
-			this.setState({transactions:JSON.stringify(jsonData)})
+			this.setState({transactions:jsonData["data"]})
 		})
 		}
 		catch{
@@ -146,7 +150,8 @@ class Contract extends Component<MyProps, MyState>{
 
 		let decodedData = abiDecoder.decodeMethod(testData);
 		console.log("decoded data ",decodedData);
-		// this.setState({params:JSON.stringify(decodedData)})
+
+		this.setState({params:decodedData})
 	}
 
 	getTransactionAndDecode = async () => {
@@ -197,6 +202,75 @@ class Contract extends Component<MyProps, MyState>{
 	// 		})
 	// 	}
 	// }
+	decodeFromLatest = async(txnDetails: any) => {
+		let jsonData;
+		let data;
+		// await this.decodeParams();
+		// try{
+			console.log(txnDetails)
+			var request = `https://api.aleth.io/v1/transactions/${txnDetails.id}`
+			await fetch(request, {
+			method: 'GET',
+			headers: {
+				'username':'main_k5ua5idae7skpuciub5afanpxys3q',
+				}
+			})
+			.then(response => response.json())
+			.then(jsonData => {
+				console.log(jsonData);
+
+				// this.setState({})
+				// this.setState({transactions:(jsonData["data"])})
+				// console.log(this.state.transactions);
+				// Contract.setState({transaction_details:JSON.stringify(jsonData)})
+				this.setState({raw_data:jsonData['data']['attributes']['msgPayload']['raw']})
+				// this.setState.raw_data = (jsonData['data']['attributes']['msgPayload']['raw'])
+				// this.decodeParams();
+				const testABI = JSON.parse(this.state.contract_abi) ;
+				// const testABI = [{"inputs": [{"type": "address", "name": ""}], "constant": true, "name": "isInstantiation", "payable": false, "outputs": [{"type": "bool", "name": ""}], "type": "function"}, {"inputs": [{"type": "address[]", "name": "_owners"}, {"type": "uint256", "name": "_required"}, {"type": "uint256", "name": "_dailyLimit"}], "constant": false, "name": "create", "payable": false, "outputs": [{"type": "address", "name": "wallet"}], "type": "function"}, {"inputs": [{"type": "address", "name": ""}, {"type": "uint256", "name": ""}], "constant": true, "name": "instantiations", "payable": false, "outputs": [{"type": "address", "name": ""}], "type": "function"}, {"inputs": [{"type": "address", "name": "creator"}], "constant": true, "name": "getInstantiationCount", "payable": false, "outputs": [{"type": "uint256", "name": ""}], "type": "function"}, {"inputs": [{"indexed": false, "type": "address", "name": "sender"}, {"indexed": false, "type": "address", "name": "instantiation"}], "type": "event", "name": "ContractInstantiation", "anonymous": false}];
+				console.log("Test API ",testABI);
+				abiDecoder.addABI(testABI);
+				const testData = this.state.raw_data;
+				// const testData = '0x53d9d9100000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000a6d9c5f7d4de3cef51ad3b7235d79ccc95114de5000000000000000000000000a6d9c5f7d4de3cef51ad3b7235d79ccc95114daa';
+				// console.log(typeof(testABI))
+				console.log("contract abi  : ", testABI);
+				console.log("raw data : ", testData);
+
+				let decodedData = abiDecoder.decodeMethod(testData);
+				console.log("decoded data ",decodedData);
+
+				this.setState({decodedDataLatest:decodedData})
+			})
+		// }
+		// catch{
+		// 	console.log('error');
+		// 	return;
+		// };
+	}
+
+	TxnRow = (props: any) => {
+		function handleClick(){
+			props.onClick(props.data);
+		}
+		// console.log(props)
+		return(
+			<tr className="" onClick={handleClick}>
+				<td className="" style={{textAlign:"center"}}>{props.data.id}</td>
+				<td className="" style={{textAlign:"center"}}>{moment.unix(parseInt(props.data.attributes.blockCreationTime)).local().toString()}</td>
+				{/* <td className="">{props.data.relationships.from.data.id}</td>
+				<td className="">{props.data.relationships.to.data.id}</td> */}
+			</tr>
+		)
+	}
+
+	ParamsRow = (props:any) => {
+		return(
+			<tr className="">
+				<td className="">{props.data.name} [{props.data.type}]</td>
+				<td className="">{props.data.value}</td>
+			</tr>
+		)
+	}
 
 	render(){
 		let contractTokenDetails;
@@ -229,7 +303,7 @@ class Contract extends Component<MyProps, MyState>{
 			else{
 				contractTokenDetails =
 				<Container style={{margin:10}}>
-					<Header inverted as="h4">Error: </h4> Address is not a token contract address!
+					<Header inverted as="h4">Error: </Header> Address is not a token contract address!
 				</Container>
 
 			}
@@ -259,7 +333,71 @@ class Contract extends Component<MyProps, MyState>{
 			accountTokenDetails = <Container style={{margin:10}}></Container>
 		}
 
+		let txnRows = this.state.transactions.map((txnDetails: any) => {
+			return <this.TxnRow key={txnDetails.id} data={txnDetails} onClick={this.decodeFromLatest}></this.TxnRow>
+		})
+		let txnDetails;
+		if(this.state.transactions != ""){
+			txnDetails =
+			<Container style={{margin:10}}>
+				<p style={{textAlign:"center"}}>[Click on a transaction to decode it]</p>
+				<table className="ui table">
+					<thead className="">
+						<th className="" style={{textAlign:"center"}}>Transaction Hash</th>
+						<th className="" style={{textAlign:"center"}}>Timestamp</th>
+					</thead>
+					<tbody className="">
+						{txnRows}
+					</tbody>
+				</table>
+			</Container>
+		}
 
+
+		let decodedLatestRows = this.state.decodedDataLatest.params.map((param: any) => {
+			return <this.ParamsRow key={param.name} data={param}></this.ParamsRow>
+		})
+		let decodedFromLatest;
+		if(this.state.decodedDataLatest.params.length != 0){
+			decodedFromLatest =
+			<Container style={{margin:10}}>
+				<Table definition>
+					<Table.Body>
+						<Table.Row>
+							<Table.Cell>Function Called</Table.Cell>
+							<Table.Cell>{this.state.decodedDataLatest.name}</Table.Cell>
+						</Table.Row>
+						{decodedLatestRows}
+					</Table.Body>
+				</Table>
+			</Container>
+		}
+		else{
+			decodedFromLatest = <Container style={{margin:10}}></Container>
+		}
+
+		let decodedParamsRows = this.state.params.params.map((param: any) => {
+			return <this.ParamsRow key={param.name} data={param}></this.ParamsRow>
+		})
+		let decodedParams;
+		console.log(this.state.params)
+		if(this.state.params.params.length != 0){
+			decodedParams =
+			<Container style={{margin:10}}>
+				<Table definition>
+					<Table.Body>
+						<Table.Row>
+							<Table.Cell>Function Called</Table.Cell>
+							<Table.Cell>{this.state.params.name}</Table.Cell>
+						</Table.Row>
+						{decodedParamsRows}
+					</Table.Body>
+				</Table>
+			</Container>
+		}
+		else{
+			decodedParams = <Container style={{margin:10}}></Container>
+		}
 
 
 		return(
@@ -268,14 +406,15 @@ class Contract extends Component<MyProps, MyState>{
 				<Container fluid>
 					<div style={ {marginLeft: 10, marginRight: 10}}>
 						<Container fluid>
-							<Segment inverted>
+							<Segment style={{background: "#f7f8fa"}}>
 								<Form inverted>
-								<Header inverted as="h2" textAlign="center">Token Contract Details</Header>
+								<Header style={{color: "#357cff"}} as="h2" textAlign="center">Token Contract Details</Header>
 									<Form.Group widths='equal'>
-										<Form.Input fluid label='Enter Token Contract Address' placeholder='Token Contract Address' value={this.state.token_contract_address} onChange={(e)=>this.setState({token_contract_address:e.target.value})}/>
+										<Label style={{background: "#f7f8fa",color: "#357cff"}}>Enter Token Contract Address</Label>
+										<Form.Input style={{color: "#357cff"}} fluid placeholder='Token Contract Address' value={this.state.token_contract_address} onChange={(e)=>this.setState({token_contract_address:e.target.value})}/>
 										{/* <Form.Input fluid label='Last name' placeholder='Last name' /> */}
 									</Form.Group>
-									<Button type='submit' onClick={this.getTokenDetails}>Get Token Details</Button>
+									<Button style={{background: "#357cff", color:"#ffffff"}} type='submit' onClick={this.getTokenDetails}>Get Token Details</Button>
 									{contractTokenDetails}
 								</Form>
 							</Segment>
@@ -284,14 +423,15 @@ class Contract extends Component<MyProps, MyState>{
 
 					<div style={ {marginLeft: 10, marginRight: 10, marginTop: 20}}>
 						<Container fluid>
-							<Segment inverted>
+							<Segment style={{background: "#f7f8fa"}}>
 								<Form inverted>
-								<Header inverted as="h2" textAlign="center">Account Token Balances</Header>
+								<Header style={{color: "#357cff"}} as="h2" textAlign="center">Account Token Balances</Header>
 									<Form.Group widths='equal'>
-										<Form.Input fluid label='Enter Account Address' placeholder='Account Address' value={this.state.account_address} onChange={(e)=>this.setState({account_address:e.target.value})}/>
+										<Label style={{background: "#f7f8fa",color: "#357cff"}}>Enter Account Address</Label>
+										<Form.Input fluid placeholder='Account Address' value={this.state.account_address} onChange={(e)=>this.setState({account_address:e.target.value})}/>
 										{/* <Form.Input fluid label='Last name' placeholder='Last name' /> */}
 									</Form.Group>
-									<Button type='submit' onClick={this.getTokenBalance}>Get Token Balances</Button>
+									<Button style={{background: "#357cff", color:"#ffffff"}} type='submit' onClick={this.getTokenBalance}>Get Token Balances</Button>
 									{accountTokenDetails}
 								</Form>
 							</Segment>
@@ -300,18 +440,28 @@ class Contract extends Component<MyProps, MyState>{
 
 					<div style={ {marginLeft: 10, marginRight: 10, marginTop: 20}}>
 						<Container fluid>
-							<Segment inverted>
+							<Segment style={{background: "#f7f8fa"}}>
 								<Form inverted>
-								<Header inverted as="h2" textAlign="center">Decode Transaction Parameters</Header>
+								<Header style={{color: "#357cff"}} as="h2" textAlign="center">Decode Transaction Parameters</Header>
+									<Form.Group widths="equal">
+										<Label style={{background: "#f7f8fa",color: "#357cff"}}>Enter Contract ABI</Label>
+										<Form.Input fluid placeholder='Contract ABI' value={this.state.contract_abi} onChange={(e)=>this.setState({contract_abi: e.target.value})}/>
+									</Form.Group>
 									<Form.Group widths='equal'>
-										<Form.Input fluid label='Enter Contract Address' placeholder='Contract Address' value={this.state.contract_address} onChange={(e)=>this.setState({contract_address:e.target.value})}/>
-										<Form.Input fluid label='Enter Contract ABI' placeholder='Contract ABI' value={this.state.contract_abi} onChange={(e)=>this.setState({contract_abi: e.target.value})}/>
+										<Label style={{background: "#f7f8fa",color: "#357cff"}}>Enter Contract Address</Label>
+										<Form.Input fluid placeholder='Contract Address' value={this.state.contract_address} onChange={(e)=>this.setState({contract_address:e.target.value})}/>
+										<Button style={{background: "#357cff", color:"#ffffff"}} type='submit' onClick={this.getTransactions}>Get Contract Transactions [10 Latest]</Button>
 									</Form.Group>
-									<Button type='submit' onClick={this.getTransactions}>Get Contract Transactions</Button>
+
+									{txnDetails}
+									{decodedFromLatest}
 									<Form.Group widths="equal" style={{marginTop: 20}}>
-										<Form.Input fluid label="Enter Transaction Hash" placeholder="Transaction Hash" value={this.state.transaction_hash} onChange={(e)=>this.setState({transaction_hash:e.target.value})}/>
+										<Label style={{background: "#f7f8fa",color: "#357cff"}}>Enter Transaction Hash</Label>
+										<Form.Input fluid placeholder="Transaction Hash" value={this.state.transaction_hash} onChange={(e)=>this.setState({transaction_hash:e.target.value})}/>
+										<Button style={{background: "#357cff", color:"#ffffff"}} type="submit" onClick={this.getTransactionAndDecode}> Get Decoded Parameters for the Transaction</Button>
 									</Form.Group>
-									<Button type="submit" onClick={this.decodeParams}> Get Decoded Parameters for the Transaction</Button>
+
+									{decodedParams}
 								</Form>
 							</Segment>
 						</Container>
@@ -347,4 +497,7 @@ const AccountTokenBalanceRow = (props) => {
 
 	)
 }
+
+
+
 export default Contract;
