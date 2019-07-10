@@ -15,14 +15,7 @@ const plugin = {
             // It can either be a component class or a functional component
             getContentComponent: async () => (props:any) => {
             return (
-            <div>Hello, {props.name}!
-            <form>
-            <label>
-                Contract Address:
-                <input type="text" name="name" onChange={(event)=>{this.http('https://api.aleth.io/v1/contracts/0x2af47a65da8CD66729b4209C22017d6A5C2d2400/token')}}/>
-            </label>
-            <input type="submit" value="Submit"/>
-            </form>
+            <div>
             <Contract />
             </div>
             )
@@ -44,7 +37,7 @@ const plugin = {
             },
             // Function that resolves to a React component class/ functional component. It can also be async.
             getPageTemplate: () => ({ slots }) => <div>
-            <h1>User profile</h1>
+            <h1>Contract Account Explorer</h1>
             { /* We'll define a single named slot ("content"), where the CMS will inject our module */ }
             { slots && slots["content"] }
         </div>

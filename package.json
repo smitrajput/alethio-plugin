@@ -69,6 +69,7 @@
     "@puzzl/browser": "^1.0.0-beta.2",
     "@puzzl/core": "^1.0.0-beta.1",
     "@sentry/browser": "^4.4.0",
+    "abi-decoder": "^2.0.1",
     "mobx": "^5.9.4",
     "mobx-react": "^5.4.3",
     "react": "^16.8.6",
