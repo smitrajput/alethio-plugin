@@ -44,7 +44,7 @@
   "dependencies": {
     "@alethio/ui": "^1.0.0-beta.11",
     "abi-decoder": "^2.0.1",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "semantic-ui-react": "^0.87.3"
   }
 }
